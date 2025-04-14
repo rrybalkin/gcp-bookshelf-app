@@ -18,6 +18,8 @@ provider "google" {
   region  = var.region
 }
 
+data "google_project" "current" {}
+
 data "google_client_openid_userinfo" "myself" {}
 
 # GCP APIs
@@ -43,6 +45,10 @@ resource "google_project_service" "artifact_registry" {
 }
 resource "google_project_service" "cloud_run" {
   service = "run.googleapis.com"
+  project = var.project_id
+}
+resource "google_project_service" "cloudbuild" {
+  service = "cloudbuild.googleapis.com"
   project = var.project_id
 }
 
@@ -122,34 +128,4 @@ resource "google_artifact_registry_repository" "docker-registry" {
   repository_id = "${var.app_name}-registry"
   description   = "Docker repository for ${var.app_name} application"
   format        = "DOCKER"
-}
-
-resource "google_service_account" "sa" {
-  account_id   = "${var.app_name}-sa"
-  display_name = "App Service Account"
-}
-
-# Assign roles to the service account
-resource "google_project_iam_member" "secret_manager_role" {
-  project = var.project_id
-  role    = "roles/secretmanager.secretAccessor"
-  member  = "serviceAccount:${google_service_account.sa.email}"
-}
-
-resource "google_project_iam_member" "cloud_translate_role" {
-  project = var.project_id
-  role    = "roles/cloudtranslate.user"
-  member  = "serviceAccount:${google_service_account.sa.email}"
-}
-
-resource "google_project_iam_member" "datastore_role" {
-  project = var.project_id
-  role    = "roles/datastore.user"
-  member  = "serviceAccount:${google_service_account.sa.email}"
-}
-
-resource "google_project_iam_member" "storage_object_role" {
-  project = var.project_id
-  role    = "roles/storage.objectUser"
-  member  = "serviceAccount:${google_service_account.sa.email}"
 }

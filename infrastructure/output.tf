@@ -20,5 +20,9 @@ output "artifact_registry_repo_url" {
 }
 
 output "app_service_account_name" {
-  value = google_service_account.sa.name
+  value = google_service_account.app_sa.name
+}
+
+output "cloudbuild_service_account_name" {
+  value = google_service_account.cloudbuild_sa.name
 }

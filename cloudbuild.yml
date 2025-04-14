@@ -1,0 +1,29 @@
+steps:
+  # Step 1: Build Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'europe-north2-docker.pkg.dev/cloudx-gcp-developer-rrybalkin/bookshelf-registry/bookshelf-app:latest'
+      - '.'
+
+  # Step 2: Push Docker image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'europe-north2-docker.pkg.dev/cloudx-gcp-developer-rrybalkin/bookshelf-registry/bookshelf-app:latest'
+
+  # Step 3: Deploy the new revision to Cloud Run
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'bookshelf-app'
+      - '--image=europe-north2-docker.pkg.dev/cloudx-gcp-developer-rrybalkin/bookshelf-registry/bookshelf-app:latest'
+      - '--region=europe-north2'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--update-env-vars=GOOGLE_CLOUD_PROJECT="cloudx-gcp-developer-rrybalkin'
+      - '--service-account=bookshelf-sa@cloudx-gcp-developer-rrybalkin.iam.gserviceaccount.com'
+
+timeout: '1200s' # Set timeout for the build
