@@ -50,3 +50,27 @@ resource "google_project_iam_member" "cloudbuild_storageadmin_role" {
   role    = "roles/storage.admin"
   member  = "serviceAccount:${google_service_account.cloudbuild_sa.email}"
 }
+
+resource "google_project_iam_member" "cloudbuild_logging_role" {
+  project = var.project_id
+  role    = "roles/logging.logWriter"
+  member = "serviceAccount:${google_service_account.cloudbuild_sa.email}"
+}
+
+resource "google_project_iam_member" "cloudbuild_runadmin_role" {
+  project = var.project_id
+  role    = "roles/run.admin"
+  member = "serviceAccount:${google_service_account.cloudbuild_sa.email}"
+}
+
+resource "google_project_iam_member" "cloudbuild_runviewer_role" {
+  project = var.project_id
+  role    = "roles/run.viewer"
+  member = "serviceAccount:${google_service_account.cloudbuild_sa.email}"
+}
+
+resource "google_project_iam_member" "cloudbuild_sauser_role" {
+  project = var.project_id
+  role    = "roles/iam.serviceAccountUser"
+  member = "serviceAccount:${google_service_account.cloudbuild_sa.email}"
+}

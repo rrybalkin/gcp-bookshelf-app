@@ -27,3 +27,8 @@ steps:
       - '--service-account=bookshelf-sa@cloudx-gcp-developer-rrybalkin.iam.gserviceaccount.com'
 
 timeout: '1200s' # Set timeout for the build
+
+# Store Logs in Cloud Logging only
+options:
+  logging: CLOUD_LOGGING_ONLY
+
