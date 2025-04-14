@@ -23,7 +23,7 @@ steps:
       - '--region=europe-north2'
       - '--platform=managed'
       - '--allow-unauthenticated'
-      - '--update-env-vars=GOOGLE_CLOUD_PROJECT="cloudx-gcp-developer-rrybalkin"'
+      - '--update-env-vars=GOOGLE_CLOUD_PROJECT=cloudx-gcp-developer-rrybalkin'
       - '--service-account=bookshelf-sa@cloudx-gcp-developer-rrybalkin.iam.gserviceaccount.com'
 
 timeout: '1200s' # Set timeout for the build
