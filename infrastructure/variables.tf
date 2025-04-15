@@ -23,3 +23,23 @@ variable "oauth_redirect_urls" {
   description = "The target application redirect URL to be used in OAuth consent"
   type = list(string)
 }
+
+variable "cloudsql_db_instance_tier" {
+  description = "CloudSQL instance database tier to be used"
+  default = "db-f1-micro"
+}
+
+variable "cloudsql_db_name" {
+  description = "CloudSQL database name"
+  default = "app_database"
+}
+
+variable "cloudsql_db_user" {
+  description = "CloudSQL database user name"
+  default = "db_admin"
+}
+
+variable "cloudsql_db_password" {
+  description = "CloudSQL database user password"
+  default = "admin"
+}
