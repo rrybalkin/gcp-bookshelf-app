@@ -12,6 +12,10 @@ export EXTERNAL_HOST_URL="http://localhost:8080"
 export DAO_TYPE="cloudsql"
 
 echo "GCP Project: ${GOOGLE_CLOUD_PROJECT}"
+
+# to allow OAuth use insecure protocol http
+export OAUTHLIB_INSECURE_TRANSPORT=1
+
 # need to re-export to make visible for Python subprocess
 export GOOGLE_CLOUD_PROJECT="$GOOGLE_CLOUD_PROJECT"
 export GOOGLE_APPLICATION_CREDENTIALS="$GOOGLE_APPLICATION_CREDENTIALS"

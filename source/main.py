@@ -1,4 +1,4 @@
-from flask import current_app, Flask, redirect, render_template
+from flask import current_app, Flask, redirect, render_template, jsonify, make_response
 from flask import request, url_for, session
 import logging
 from google.cloud import logging as cloud_logging
@@ -383,10 +383,12 @@ def profile():
 
 @app.route('/migratedata', methods=['GET'])
 def migratedata():
-    '''
+    """
     Utility method to kick books data migration from Firestore into CloudSQL when needed.
-    '''
-    migrate_data(current_app.logger)
+    """
+    result = migrate_data(current_app.logger)
+    data = {'message': result, 'status': 'SUCCESS'}
+    return make_response(jsonify(data), 200)
 
 
 # this is only used when running locally

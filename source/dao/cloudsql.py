@@ -33,6 +33,8 @@ class CloudSQLBookDAO(BookDAO):
         """Convert a database record (row) to a Python dictionary."""
         if not record:
             return None
+        record['imageUrl'] = record['image_url']
+        record['publishedDate'] = record['published_date']
         return record
 
     def read(self, book_id):
@@ -50,8 +52,8 @@ class CloudSQLBookDAO(BookDAO):
         try:
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute(
-                    "INSERT INTO books (title, author, published_date, description) VALUES (%s, %s, %s, %s) RETURNING *;",
-                    (data.get("title"), data.get("author"), data.get("published_date"), data.get("description"))
+                    "INSERT INTO books (title, author, image_url, published_date, description) VALUES (%s, %s, %s, %s, %s) RETURNING *;",
+                    (data.get("title"), data.get("author"), data.get("image_url"), data.get("published_date"), data.get("description"))
                 )
                 record = cursor.fetchone()
                 conn.commit()
@@ -64,8 +66,8 @@ class CloudSQLBookDAO(BookDAO):
         try:
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute(
-                    "UPDATE books SET title = %s, author = %s, published_date = %s, description = %s WHERE id = %s RETURNING *;",
-                    (data.get("title"), data.get("author"), data.get("published_date"), data.get("description"), book_id)
+                    "UPDATE books SET title = %s, author = %s, image_url = %s, published_date = %s, description = %s WHERE id = %s RETURNING *;",
+                    (data.get("title"), data.get("author"), data.get("image_url"), data.get("published_date"), data.get("description"), book_id)
                 )
                 record = cursor.fetchone()
                 conn.commit()

@@ -25,7 +25,7 @@ def upgrade():
         sa.Column('id', sa.Integer, autoincrement=True, primary_key=True),
         sa.Column('title', sa.String(255), nullable=False),
         sa.Column('author', sa.String(50)),
-        sa.Column('published_date', sa.Date()),
+        sa.Column('published_date', sa.String(30)),
         sa.Column('description', sa.Unicode(2000)),
     )
 

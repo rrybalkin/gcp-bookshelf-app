@@ -23,11 +23,13 @@ def migrate_data(logger):
         book_data = {
             "title": book.get("title"),
             "author": book.get("author"),
-            "published_date": book.get("published_date"),
+            "image_url": book.get("imageUrl"),
+            "published_date": book.get("publishedDate"),
             "description": book.get("description"),
         }
         # Insert into CloudSQL
         cloudsql_dao.create(book_data)
         print(f"Migrated book: {book_data['title']}")
 
-    print("Data migration completed successfully.")
+    print("Data migration completed successfully. Migrated {} books".format(len(firestore_books)))
+    return "{} books migrated".format(len(firestore_books))
