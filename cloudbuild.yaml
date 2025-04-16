@@ -1,17 +1,49 @@
 steps:
+  # DB Migration Stage
+  # Step 1: Install the Cloud SQL Auth Proxy
+  - id: install-proxy
+    name: gcr.io/cloud-builders/wget
+    entrypoint: sh
+    args:
+      - -c
+      - |
+        wget -O /workspace/cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.15.2/cloud-sql-proxy.linux.amd64
+        chmod +x /workspace/cloud-sql-proxy
+
+  # Step 2: Install dependencies including Alembic
+  - name: python:3.10-slim
+    id: run-db-migration
+    entrypoint: bash
+    secretEnv: ['CLOUDSQL_DB_USER', 'CLOUDSQL_DB_PASS']
+    args:
+      - "-c"
+      - |
+        python -m venv venv
+        source venv/bin/activate
+        pip install --upgrade pip
+        pip install -r source/requirements.txt
+          
+        # start CloudSQL Proxy
+        /workspace/cloud-sql-proxy ${PROJECT_ID}:${_REGION_ID}:bookshelf-cloud-sql-instance --port ${_CLOUDSQL_PORT} & sleep 10;
+        
+        export DB_URL=postgresql://$$CLOUDSQL_DB_USER:$$CLOUDSQL_DB_PASS@${_CLOUDSQL_HOST}:${_CLOUDSQL_PORT}/${_CLOUDSQL_DB_NAME}
+        alembic upgrade head && (echo "INFO: Migration succeed." && exit 0) || (echo "ERROR: Migration failed, check logs." && exit 1)
+        deactivate
+
+  # Docker Build and Deployment Stage
   # Step 1: Build Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
       - '-t'
-      - 'europe-north2-docker.pkg.dev/cloudx-gcp-developer-rrybalkin/bookshelf-registry/bookshelf-app:latest'
+      - '${_IMAGE_NAME}:${_IMAGE_TAG}'
       - '.'
 
   # Step 2: Push Docker image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
-      - 'europe-north2-docker.pkg.dev/cloudx-gcp-developer-rrybalkin/bookshelf-registry/bookshelf-app:latest'
+      - '${_IMAGE_NAME}:${_IMAGE_TAG}'
 
   # Step 3: Deploy the new revision to Cloud Run
   - name: 'gcr.io/cloud-builders/gcloud'
@@ -19,16 +51,32 @@ steps:
       - 'run'
       - 'deploy'
       - 'bookshelf-app'
-      - '--image=europe-north2-docker.pkg.dev/cloudx-gcp-developer-rrybalkin/bookshelf-registry/bookshelf-app:latest'
-      - '--region=europe-north2'
+      - '--image=${_IMAGE_NAME}:${_IMAGE_TAG}'
+      - '--region=${_REGION_ID}'
       - '--platform=managed'
       - '--allow-unauthenticated'
-      - '--update-env-vars=GOOGLE_CLOUD_PROJECT=cloudx-gcp-developer-rrybalkin'
-      - '--service-account=bookshelf-sa@cloudx-gcp-developer-rrybalkin.iam.gserviceaccount.com'
+      - "--update-env-vars=GOOGLE_CLOUD_PROJECT=$PROJECT_ID"
+      - "--service-account=bookshelf-sa@$PROJECT_ID.iam.gserviceaccount.com"
+
+substitutions:
+  _REGION_ID: europe-north2
+  _CLOUDSQL_HOST: 127.0.0.1
+  _CLOUDSQL_PORT: "5432"
+  _CLOUDSQL_DB_NAME: app_database
+  _DATABASE_USER_KEY: cloudsql-db-user
+  _DATABASE_PASSWORD_KEY: cloudsql-db-pass
+  _IMAGE_NAME: europe-north2-docker.pkg.dev/cloudx-gcp-developer-rrybalkin/bookshelf-registry/bookshelf-app
+  _IMAGE_TAG: latest
+
+availableSecrets:
+  secretManager:
+    - versionName: projects/${PROJECT_ID}/secrets/${_DATABASE_USER_KEY}/versions/latest
+      env: "CLOUDSQL_DB_USER"
+    - versionName: projects/${PROJECT_ID}/secrets/${_DATABASE_PASSWORD_KEY}/versions/latest
+      env: "CLOUDSQL_DB_PASS"
 
 timeout: '1200s' # Set timeout for the build
 
 # Store Logs in Cloud Logging only
 options:
   logging: CLOUD_LOGGING_ONLY
-

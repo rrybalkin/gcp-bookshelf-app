@@ -1,4 +1,16 @@
 
+locals {
+  app_sa_roles = toset([
+    "roles/secretmanager.secretAccessor", "roles/cloudtranslate.user", "roles/datastore.user",
+    "roles/storage.objectUser"
+  ])
+  cloudbuild_sa_roles = toset([
+    "roles/cloudsql.client", "roles/artifactregistry.writer", "roles/storage.admin",
+    "roles/run.admin", "roles/run.viewer", "roles/iam.serviceAccountUser",
+    "roles/secretmanager.secretAccessor", "roles/logging.logWriter"
+  ])
+}
+
 # Service account for Application
 resource "google_service_account" "app_sa" {
   account_id   = "${var.app_name}-sa"
@@ -6,28 +18,11 @@ resource "google_service_account" "app_sa" {
   description = "Application service account to access GCP services"
 }
 
-# Assign roles to the service account
-resource "google_project_iam_member" "secret_manager_role" {
+# Assign required roles to the Application service account
+resource "google_project_iam_member" "app_sa_role" {
+  for_each = local.app_sa_roles
   project = var.project_id
-  role    = "roles/secretmanager.secretAccessor"
-  member  = "serviceAccount:${google_service_account.app_sa.email}"
-}
-
-resource "google_project_iam_member" "cloud_translate_role" {
-  project = var.project_id
-  role    = "roles/cloudtranslate.user"
-  member  = "serviceAccount:${google_service_account.app_sa.email}"
-}
-
-resource "google_project_iam_member" "datastore_role" {
-  project = var.project_id
-  role    = "roles/datastore.user"
-  member  = "serviceAccount:${google_service_account.app_sa.email}"
-}
-
-resource "google_project_iam_member" "storage_object_role" {
-  project = var.project_id
-  role    = "roles/storage.objectUser"
+  role    = each.key
   member  = "serviceAccount:${google_service_account.app_sa.email}"
 }
 
@@ -39,38 +34,17 @@ resource "google_service_account" "cloudbuild_sa" {
 }
 
 # Assign required roles to GCP CloudBuild service account
-resource "google_project_iam_member" "cloudbuild_repoadmin_role" {
+resource "google_project_iam_member" "gcp_cloudbuild_sa_role" {
+  for_each = local.cloudbuild_sa_roles
   project = var.project_id
-  role    = "roles/artifactregistry.repoAdmin"
+  role    = each.key
+  member  = "serviceAccount:${data.google_project.current.number}@cloudbuild.gserviceaccount.com"
+}
+
+# Assign required roles to a custom CloudBuild service account
+resource "google_project_iam_member" "custom_cloudbuild_sa_role" {
+  for_each = local.cloudbuild_sa_roles
+  project = var.project_id
+  role    = each.key
   member  = "serviceAccount:${google_service_account.cloudbuild_sa.email}"
-}
-
-resource "google_project_iam_member" "cloudbuild_storageadmin_role" {
-  project = var.project_id
-  role    = "roles/storage.admin"
-  member  = "serviceAccount:${google_service_account.cloudbuild_sa.email}"
-}
-
-resource "google_project_iam_member" "cloudbuild_logging_role" {
-  project = var.project_id
-  role    = "roles/logging.logWriter"
-  member = "serviceAccount:${google_service_account.cloudbuild_sa.email}"
-}
-
-resource "google_project_iam_member" "cloudbuild_runadmin_role" {
-  project = var.project_id
-  role    = "roles/run.admin"
-  member = "serviceAccount:${google_service_account.cloudbuild_sa.email}"
-}
-
-resource "google_project_iam_member" "cloudbuild_runviewer_role" {
-  project = var.project_id
-  role    = "roles/run.viewer"
-  member = "serviceAccount:${google_service_account.cloudbuild_sa.email}"
-}
-
-resource "google_project_iam_member" "cloudbuild_sauser_role" {
-  project = var.project_id
-  role    = "roles/iam.serviceAccountUser"
-  member = "serviceAccount:${google_service_account.cloudbuild_sa.email}"
 }

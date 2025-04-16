@@ -1,4 +1,5 @@
 import os
+import secrets
 
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -16,8 +17,8 @@ class CloudSQLBookDAO(BookDAO):
             "host": os.getenv('CLOUDSQL_HOST', 'localhost'),
             "port": os.getenv('CLOUDSQL_PORT', '5432'),
             "dbname": os.getenv('CLOUDSQL_DB_NAME', 'app_database'),
-            "user": os.getenv('CLOUDSQL_DB_USER'),
-            "password": os.getenv('CLOUDSQL_DB_PASS'),
+            "user": secrets.get_secret('cloudsql-db-user'),
+            "password": secrets.get_secret('cloudsql-db-pass'),
         }
 
     def connect_db(self):
@@ -53,7 +54,7 @@ class CloudSQLBookDAO(BookDAO):
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute(
                     "INSERT INTO books (title, author, image_url, published_date, description) VALUES (%s, %s, %s, %s, %s) RETURNING *;",
-                    (data.get("title"), data.get("author"), data.get("image_url"), data.get("published_date"), data.get("description"))
+                    (data.get("title"), data.get("author"), data.get("imageUrl"), data.get("publishedDate"), data.get("description"))
                 )
                 record = cursor.fetchone()
                 conn.commit()
@@ -67,7 +68,7 @@ class CloudSQLBookDAO(BookDAO):
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute(
                     "UPDATE books SET title = %s, author = %s, image_url = %s, published_date = %s, description = %s WHERE id = %s RETURNING *;",
-                    (data.get("title"), data.get("author"), data.get("image_url"), data.get("published_date"), data.get("description"), book_id)
+                    (data.get("title"), data.get("author"), data.get("imageUrl"), data.get("publishedDate"), data.get("description"), book_id)
                 )
                 record = cursor.fetchone()
                 conn.commit()
