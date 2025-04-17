@@ -1,0 +1,16 @@
+flowchart TD
+    A[Commit pushed to GitHub repo] --> K[CloudBuild Trigger]
+    K --> G[Start new Cloud Build]
+    G --> B[DB Migration stage]
+    B --> B1[Install and run Cloud SQL Auth Proxy]
+    B --> B2[Run Database Migration by Alembic]
+    B2 --> C[Docker Build and Push]
+    C --> C1[Build Docker Image]
+    C --> C2[Push Image to Artifact Registry]
+    C2 --> D[Conditional Deployment]
+    D --> |_DEPLOY_TARGET=cloudrun| D1[Deploy to Cloud Run]
+    D --> |_DEPLOY_TARGET=k8s| D2[Deploy to Kubernetes]
+    D1 --> E1[Cloud Run URL]
+    D2 --> E2[Kubernetes Service - External DNS]
+    E1 --> F[Finish build]
+    E2 --> F
