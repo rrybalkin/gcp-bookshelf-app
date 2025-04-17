@@ -1,0 +1,20 @@
+swagger: "2.0"
+info:
+  description: "GCP Endpoint for Bookshelf App"
+  title: "Bookshelf App"
+  version: "1.0.0"
+host: "${app_name}.endpoints.${project_id}.cloud.goog"
+x-google-endpoints:
+  - name: "${app_name}.endpoints.${project_id}.cloud.goog"
+    target: "${ip_address}"
+schemes:
+  - https
+  - http
+paths:
+  /:
+    get:
+      summary: "Home page"
+      operationId: "getHomePage"
+      responses:
+        "200":
+          description: "Successful response"

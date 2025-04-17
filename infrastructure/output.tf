@@ -57,7 +57,7 @@ output "app_static_address_ip" {
   value = google_compute_address.service_static_address.address
 }
 
-output "app_dns_record" {
+output "app_url" {
   description = "A custom managed DNS record to access application"
-  value = google_dns_record_set.service_api.name
+  value = "http://${google_endpoints_service.service_cloud_endpoint.dns_address}"
 }

@@ -70,7 +70,7 @@ def handle_callback(callback_uri, client_config, scopes, request_url, stored_sta
     flow.fetch_token(authorization_response=request_url)
     credentials = flow.credentials
 
-    oauth2_client = build('oauth2','v2',credentials=credentials, cache_discovery=False)
+    oauth2_client = build('oauth2', 'v2', credentials=credentials, cache_discovery=False)
     user_info = oauth2_client.userinfo().get().execute()
 
     return _credentials_to_dict(credentials), user_info

@@ -96,9 +96,6 @@ def external_url(url):
     """
     external_host_url = current_app.config['EXTERNAL_HOST_URL']
     if external_host_url is None:
-        # force https
-        if url.startswith('http://'):
-            url = f"https://{url[7:]}"
         return url
 
     # replace the scheme and hostname with the external host URL

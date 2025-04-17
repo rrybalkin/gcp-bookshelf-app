@@ -5,14 +5,14 @@ if [ -z "$NAMESPACE" ]; then
 fi
 
 # change to true in case of need deleting resources first
-DELETE_BEFORE_DEPLOY=false
+DELETE_BEFORE_DEPLOY="false"
 
 echo "Deploying service into k8s namespace ${NAMESPACE}"
 
 kubectl create namespace "$NAMESPACE" || echo "Namespace $NAMESPACE already exists."
 
 # optionally delete the existing resources
-if [ $DELETE_BEFORE_DEPLOY ]; then
+if [ "$DELETE_BEFORE_DEPLOY" == "true" ]; then
   echo "Deleting the existing resources..."
   kubectl delete service bookshelf-app-service -n="$NAMESPACE"
   kubectl delete serviceaccount bookshelf-app-sa -n="$NAMESPACE"
