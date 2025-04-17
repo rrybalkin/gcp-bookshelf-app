@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bookshelf-app # Deployment name
+spec:
+  replicas: 1 # Number of replicas; adjust as needed
+  selector:
+    matchLabels:
+      app: bookshelf-app
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 100%
+      maxUnavailable: 100%
+  template:
+    metadata:
+      labels:
+        app: bookshelf-app
+    spec:
+      containers:
+        # Main application container
+        - name: bookshelf-app
+          image: europe-north2-docker.pkg.dev/cloudx-gcp-developer-rrybalkin/bookshelf-registry/bookshelf-app:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80 # Application listens on port 80
+          env:
+            - name: PORT
+              value: "80"
+            - name: GOOGLE_CLOUD_PROJECT
+              value: cloudx-gcp-developer-rrybalkin
+            - name: DAO_TYPE
+              value: cloudsql # Application accessing database through CloudSQL Proxy
+            - name: DB_HOST
+              value: "localhost" # Cloud SQL Proxy will run locally
+            - name: DB_PORT
+              value: "5432"
+          resources:
+            limits:
+              ephemeral-storage: 1Gi
+            requests:
+              cpu: 200m
+              ephemeral-storage: 1Gi
+              memory: 1Gi
+          securityContext:
+            capabilities:
+              drop:
+                - NET_RAW
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+
+        # CloudSQL Auth Proxy Container
+        - name: cloud-sql-proxy
+          image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:latest # Official Cloud SQL Auth Proxy image
+          command:
+            - "/cloud-sql-proxy"
+            - "--private-ip"
+            - "--quiet"
+            - "cloudx-gcp-developer-rrybalkin:europe-north2:bookshelf-cloud-sql-instance"
+          ports:
+            - containerPort: 5432 # Expose proxy locally at port 5432
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "200m"
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+
+      serviceAccountName: bookshelf-app-sa # Kubernetes Service Account linked to GCP Service Account
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault

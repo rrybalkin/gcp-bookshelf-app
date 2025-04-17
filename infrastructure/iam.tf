@@ -2,7 +2,7 @@
 locals {
   app_sa_roles = toset([
     "roles/secretmanager.secretAccessor", "roles/cloudtranslate.user", "roles/datastore.user",
-    "roles/storage.objectUser"
+    "roles/storage.objectUser", "roles/cloudsql.instanceUser", "roles/cloudsql.client"
   ])
   cloudbuild_sa_roles = toset([
     "roles/cloudsql.client", "roles/artifactregistry.writer", "roles/storage.admin",
@@ -47,4 +47,12 @@ resource "google_project_iam_member" "custom_cloudbuild_sa_role" {
   project = var.project_id
   role    = each.key
   member  = "serviceAccount:${google_service_account.cloudbuild_sa.email}"
+}
+
+# Allow k8s service to assume GCP SA
+resource "google_service_account_iam_member" "k8s_sa_workload_identity" {
+  service_account_id = google_service_account.app_sa.id
+  role    = "roles/iam.workloadIdentityUser"
+  member = "serviceAccount:${var.project_id}.svc.id.goog[dev/${var.app_name}-sa]"
+  depends_on = [google_container_cluster.autopilot_gke]
 }

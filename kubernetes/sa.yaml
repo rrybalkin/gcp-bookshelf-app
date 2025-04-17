@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    iam.gke.io/bookshelf-app-sa: bookshelf-sa@930192473754.iam.gserviceaccount.com
+    iam.gke.io/gcp-service-account: bookshelf-sa@cloudx-gcp-developer-rrybalkin.iam.gserviceaccount.com
+  name: bookshelf-app-sa

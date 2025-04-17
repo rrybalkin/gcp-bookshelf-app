@@ -12,6 +12,7 @@ resource "google_project_service" "services" {
     "artifactregistry.googleapis.com",
     "run.googleapis.com",
     "cloudbuild.googleapis.com",
+    "container.googleapis.com"
   ])
   project = var.project_id
   service = each.key
