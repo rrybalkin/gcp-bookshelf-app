@@ -9,7 +9,7 @@ locals {
     "roles/cloudsql.client", "roles/artifactregistry.writer", "roles/storage.admin",
     "roles/run.admin", "roles/run.viewer", "roles/iam.serviceAccountUser",
     "roles/secretmanager.secretAccessor", "roles/logging.logWriter",
-    "roles/container.clusterViewer", "roles/container.admin"
+    "roles/container.clusterViewer", "roles/container.admin", "roles/compute.viewer"
   ])
 }
 
