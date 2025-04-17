@@ -16,7 +16,7 @@ In order to run DB migration sript:
 ./db_migration.sh
 ```
 
-### How to submit CloudBuild from locally
+### How to submit CloudBuild from locally with a custom SA
 ```shell
 gcloud builds submit --config=cloudbuild.yaml --service-account=projects/cloudx-gcp-developer-rrybalkin/serviceAccounts/cloud-build-sa@cloudx-gcp-developer-rrybalkin.iam.gserviceaccount.com .
 ```

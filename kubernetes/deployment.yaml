@@ -35,6 +35,16 @@ spec:
               value: "localhost" # Cloud SQL Proxy will run locally
             - name: DB_PORT
               value: "5432"
+            - name: CLOUDSQL_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: cloudsql-db-secret
+                  key: db-user
+            - name: CLOUDSQL_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: cloudsql-db-secret
+                  key: db-pass
           resources:
             limits:
               ephemeral-storage: 1Gi

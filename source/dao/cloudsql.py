@@ -17,8 +17,8 @@ class CloudSQLBookDAO(BookDAO):
             "host": os.getenv('CLOUDSQL_HOST', 'localhost'),
             "port": os.getenv('CLOUDSQL_PORT', '5432'),
             "dbname": os.getenv('CLOUDSQL_DB_NAME', 'app_database'),
-            "user": secrets.get_secret('cloudsql-db-user'),
-            "password": secrets.get_secret('cloudsql-db-pass'),
+            "user": os.getenv('CLOUDSQL_DB_USER'),
+            "password": os.getenv('CLOUDSQL_DB_PASS'),
         }
 
     def connect_db(self):

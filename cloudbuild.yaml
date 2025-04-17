@@ -24,7 +24,7 @@ steps:
         pip install -r source/requirements.txt
           
         # start CloudSQL Proxy
-        /workspace/cloud-sql-proxy ${PROJECT_ID}:${_REGION_ID}:bookshelf-cloud-sql-instance --port ${_CLOUDSQL_PORT} & sleep 10;
+        /workspace/cloud-sql-proxy ${PROJECT_ID}:${_REGION}:bookshelf-cloud-sql-instance --port ${_CLOUDSQL_PORT} & sleep 10;
         
         export DB_URL=postgresql://$$CLOUDSQL_DB_USER:$$CLOUDSQL_DB_PASS@${_CLOUDSQL_HOST}:${_CLOUDSQL_PORT}/${_CLOUDSQL_DB_NAME}
         alembic upgrade head && (echo "INFO: Migration succeed." && exit 0) || (echo "ERROR: Migration failed, check logs." && exit 1)
@@ -32,7 +32,8 @@ steps:
 
   # Docker Build and Deployment Stage
   # Step 1: Build Docker image
-  - name: 'gcr.io/cloud-builders/docker'
+  - id: build-docker-image
+    name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
       - '-t'
@@ -40,26 +41,61 @@ steps:
       - '.'
 
   # Step 2: Push Docker image to Artifact Registry
-  - name: 'gcr.io/cloud-builders/docker'
+  - id: push-docker-image
+    name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
       - '${_IMAGE_NAME}:${_IMAGE_TAG}'
 
-  # Step 3: Deploy the new revision to Cloud Run
-  - name: 'gcr.io/cloud-builders/gcloud'
+  # Conditional deploy the new revision to Cloud Run
+  - id: deploy-cloudrun
+    name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: "bash"
     args:
-      - 'run'
-      - 'deploy'
-      - 'bookshelf-app'
-      - '--image=${_IMAGE_NAME}:${_IMAGE_TAG}'
-      - '--region=${_REGION_ID}'
-      - '--platform=managed'
-      - '--allow-unauthenticated'
-      - "--update-env-vars=GOOGLE_CLOUD_PROJECT=$PROJECT_ID"
-      - "--service-account=bookshelf-sa@$PROJECT_ID.iam.gserviceaccount.com"
+      - "-c"
+      - |
+        if [ "$_DEPLOY_TARGET" == "cloudrun" ]; then
+          echo "Deploying to Cloud Run..."
+          gcloud run deploy bookshelf-app \
+            --image=${_IMAGE_NAME}:${_IMAGE_TAG} \
+            --region=${_REGION} \
+            --platform=managed \
+            --allow-unauthenticated \
+            --update-env-vars=GOOGLE_CLOUD_PROJECT=$PROJECT_ID \
+            --service-account=bookshelf-sa@$PROJECT_ID.iam.gserviceaccount.com \
+          && echo "Deployment finished successfully";
+        fi
+
+  # Conditional deploy the new revision to Kubernetes
+  - id: deploy-kubernetes
+    name: "google/cloud-sdk:latest" # Includes both gcloud and kubectl
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        if [ "$_DEPLOY_TARGET" == "k8s" ]; then
+          echo "Deploying to Kubernetes..."
+        
+          # Configure access to GKE cluster
+          gcloud container clusters get-credentials ${_K8S_CLUSTER} --region ${_REGION} --project ${PROJECT_ID}
+          # Check that GKE context is added and visible by kubectl
+          kubectl config get-contexts
+        
+          # Install addition utilities
+          apt-get upgrade && apt-get install -y gettext-base
+          envsubst --version || (echo "envsubst is not available!" && exit 1)
+          
+          # Apply your Kubernetes manifests
+          cd kubernetes || (echo "kubernetes folder not found!" && ls -l && exit 1)
+          ./k8s-deploy.sh ${_K8S_NAMESPACE} || (echo "k8s-deploy.sh failed!" && exit 1)
+
+          # Ensure rollback status on Kubernetes deployment
+          kubectl rollout status deployment bookshelf-app --namespace=${_K8S_NAMESPACE}
+        fi
+
 
 substitutions:
-  _REGION_ID: europe-north2
+  _REGION: europe-north2
   _CLOUDSQL_HOST: 127.0.0.1
   _CLOUDSQL_PORT: "5432"
   _CLOUDSQL_DB_NAME: app_database
@@ -67,6 +103,9 @@ substitutions:
   _DATABASE_PASSWORD_KEY: cloudsql-db-pass
   _IMAGE_NAME: europe-north2-docker.pkg.dev/cloudx-gcp-developer-rrybalkin/bookshelf-registry/bookshelf-app
   _IMAGE_TAG: latest
+  _DEPLOY_TARGET: "k8s" # The deployment target; available options: ['cloudrun', 'k8s']
+  _K8S_CLUSTER: "bookshelf-gke"
+  _K8S_NAMESPACE: "dev"
 
 availableSecrets:
   secretManager:
@@ -75,7 +114,7 @@ availableSecrets:
     - versionName: projects/${PROJECT_ID}/secrets/${_DATABASE_PASSWORD_KEY}/versions/latest
       env: "CLOUDSQL_DB_PASS"
 
-timeout: '1200s' # Set timeout for the build
+timeout: '300s' # Set timeout for the build
 
 # Store Logs in Cloud Logging only
 options:
