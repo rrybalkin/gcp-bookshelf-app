@@ -6,6 +6,7 @@ metadata:
     cloud.google.com/load-balancer-type: "External" # Enable external GCP load balancer
 spec:
   type: LoadBalancer
+  loadBalancerIP: ${SVC_STATIC_IP}
   selector:
     app: bookshelf-app # Match the label of your deployment pods
   ports:

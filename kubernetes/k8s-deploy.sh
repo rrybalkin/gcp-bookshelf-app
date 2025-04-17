@@ -20,14 +20,14 @@ if [ $DELETE_BEFORE_DEPLOY ]; then
 fi
 
 # create new resources
-# create a secret with DB credentials first, need to fetch secret data from GCP Secrets
+# fetch and export environment variables to be substituted in the templates before apply
 export DB_USER=$(gcloud secrets versions access latest --secret=cloudsql-db-user | base64)
 export DB_PASS=$(gcloud secrets versions access latest --secret=cloudsql-db-pass | base64)
-envsubst < db-secret.yaml | kubectl -n="$NAMESPACE" apply -f -
+export SVC_STATIC_IP=$(gcloud compute addresses describe bookshelf-ipv4-address --region=europe-north2 --format="value(address)")
 
-# create the rest of resources
-kubectl apply -f sa.yaml -n="$NAMESPACE"
-kubectl apply -f deployment.yaml -n="$NAMESPACE"
-kubectl apply -f service.yaml -n="$NAMESPACE"
+envsubst < db-secret.yaml  | kubectl -n="$NAMESPACE" apply -f -
+envsubst < sa.yaml         | kubectl -n="$NAMESPACE" apply -f -
+envsubst < deployment.yaml | kubectl -n="$NAMESPACE" apply -f -
+envsubst < service.yaml    | kubectl -n="$NAMESPACE" apply -f -
 
 echo "Deployment succeeded."
