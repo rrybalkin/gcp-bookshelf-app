@@ -24,6 +24,7 @@ fi
 export DB_USER=$(gcloud secrets versions access latest --secret=cloudsql-db-user | base64)
 export DB_PASS=$(gcloud secrets versions access latest --secret=cloudsql-db-pass | base64)
 export SVC_STATIC_IP=$(gcloud compute addresses describe bookshelf-ipv4-address --region=europe-north2 --format="value(address)")
+export DEPLOY_TIMESTAMP=$(date +%s)
 
 envsubst < db-secret.yaml  | kubectl -n="$NAMESPACE" apply -f -
 envsubst < sa.yaml         | kubectl -n="$NAMESPACE" apply -f -
