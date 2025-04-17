@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 
+cd ..
+
 # When running 1st time, need to login and get Artifact Registry credentials
 # gcloud auth login
 # gcloud auth configure-docker europe-north2-docker.pkg.dev
