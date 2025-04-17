@@ -31,4 +31,10 @@ envsubst < sa.yaml         | kubectl -n="$NAMESPACE" apply -f -
 envsubst < deployment.yaml | kubectl -n="$NAMESPACE" apply -f -
 envsubst < service.yaml    | kubectl -n="$NAMESPACE" apply -f -
 
+# Restart service pods
+kubectl rollout restart deployment bookshelf-app --namespace=$NAMESPACE
+
+# Ensure rollback status on Kubernetes deployment
+kubectl rollout status deployment bookshelf-app --namespace=$NAMESPACE
+
 echo "Deployment succeeded."

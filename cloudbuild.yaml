@@ -87,10 +87,7 @@ steps:
           
           # Apply your Kubernetes manifests
           cd kubernetes || (echo "kubernetes folder not found!" && ls -l && exit 1)
-          ./k8s-deploy.sh ${_K8S_NAMESPACE} || (echo "k8s-deploy.sh failed!" && exit 1)
-
-          # Ensure rollback status on Kubernetes deployment
-          kubectl rollout status deployment bookshelf-app --namespace=${_K8S_NAMESPACE}
+          ./k8s-deploy.sh ${_K8S_NAMESPACE} || (echo "k8s-deploy script failed!" && exit 1)
         fi
 
 
