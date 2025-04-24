@@ -1,6 +1,7 @@
 
 # Autopilot GKE Cluster Deployment
 resource "google_container_cluster" "autopilot_gke" {
+  count              = var.deploy_gke_cluster ? 1 : 0
   name               = "${var.app_name}-gke"
   location           = var.region
   networking_mode    = "VPC_NATIVE" # Use VPC-native routing
@@ -19,4 +20,7 @@ resource "google_container_cluster" "autopilot_gke" {
   workload_identity_config {
     workload_pool = "${var.project_id}.svc.id.goog"
   }
+
+  # allow cluster deletion
+  deletion_protection = false
 }

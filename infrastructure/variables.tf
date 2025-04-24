@@ -43,3 +43,9 @@ variable "cloudsql_db_password" {
   description = "CloudSQL database user password"
   default = "admin"
 }
+
+variable "deploy_gke_cluster" {
+  type = bool
+  description = "Enable or disable GKE cluster deployment"
+  default = true
+}
