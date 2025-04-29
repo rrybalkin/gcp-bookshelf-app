@@ -10,4 +10,4 @@ oauth_redirect_urls = [
 
 # temporarily disable GKE deployment to save costs
 # enable when ready to use the application
-deploy_gke_cluster = false
+deploy_gke_cluster = true
