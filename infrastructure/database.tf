@@ -20,6 +20,7 @@ resource "google_sql_database_instance" "cloud_sql_instance" {
       private_network = google_compute_network.vpc_network.self_link # Attach private IP to VPC
     }
   }
+  deletion_protection = false
 }
 
 # Create a PostgreSQL database inside CloudSQL instance

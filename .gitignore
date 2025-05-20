@@ -4,7 +4,7 @@
 # Terraform files
 /infrastructure/.terraform/*
 infrastructure/.terraform.lock.hcl
-/infrastructure/tfplan
+/infrastructure/*tfplan
 /infrastructure/client_secret.json
 
 # Byte-compiled / optimized / DLL files

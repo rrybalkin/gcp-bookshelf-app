@@ -16,4 +16,5 @@ resource "google_project_service" "services" {
   ])
   project = var.project_id
   service = each.key
+  disable_on_destroy = false
 }
